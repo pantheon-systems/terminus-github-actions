@@ -1,0 +1,22 @@
+name: Setup Terminus
+description: ''
+inputs:
+  pantheon-machine-token:
+    description: 'Machine token used to authenticate with Pantheon.'
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Install Terminus
+      shell: bash
+      run: |
+        mkdir ~/terminus && cd ~/terminus
+        TERMINUS_RELEASE=$(curl --silent "https://api.github.com/repos/pantheon-systems/terminus/releases/latest" | perl -nle'print $& while m#"tag_name": "\K[^"]*#g')
+        curl -L https://github.com/pantheon-systems/terminus/releases/download/$TERMINUS_RELEASE/terminus.phar --output terminus
+        chmod +x terminus
+        sudo ln -s ~/terminus/terminus /usr/local/bin/terminus
+
+    - name: Login to Pantheon
+      shell: bash
+      run: |
+        terminus auth:login --machine-token="${{ inputs.pantheon-machine-token }}"
