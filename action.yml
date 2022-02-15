@@ -1,5 +1,5 @@
 name: Setup Terminus
-description: ''
+description: 'Installs and configures the Pantheon CLI tool, Terminus.'
 inputs:
   pantheon-machine-token:
     description: 'Machine token used to authenticate with Pantheon.'
