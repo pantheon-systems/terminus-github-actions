@@ -1,0 +1,21 @@
+# package directories
+node_modules
+jspm_packages
+
+# Serverless directories
+.serverless
+
+.env*
+!.env.*example
+*.envrc
+
+coverage/
+
+*.tfstate
+*.tfstate.*.backup
+*.tfstate.backup
+.terraform/
+*.lock.info
+*.sw*
+.idea
+.eslintcache
