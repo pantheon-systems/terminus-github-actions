@@ -5,7 +5,8 @@ inputs:
     description: 'Machine token used to authenticate with Pantheon.'
     required: true
   terminus-version:
-    description: 'Machine token used to authenticate with Pantheon.'
+    description: |
+      The full version of Terminus to install. If omitted, the latest version is used.
     required: false
 runs:
   using: composite
