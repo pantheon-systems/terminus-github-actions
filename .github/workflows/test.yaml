@@ -19,3 +19,10 @@ jobs:
           pantheon-machine-token: ${{ secrets.PANTHEON_MACHINE_TOKEN }}
       - run: |
           terminus --version
+      - name: Install Terminus
+        uses: ackama/setup-terminus@support-terminus-version-test
+        with:
+          pantheon-machine-token: ${{ secrets.PANTHEON_MACHINE_TOKEN }}
+          terminus-version: 2.0.0
+      - run: |
+          terminus --version

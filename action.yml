@@ -4,11 +4,15 @@ inputs:
   pantheon-machine-token:
     description: 'Machine token used to authenticate with Pantheon.'
     required: true
+  terminus-version:
+    description: 'Machine token used to authenticate with Pantheon.'
+    required: false
 runs:
   using: composite
   steps:
     - name: Determine version
       shell: bash
+      if: ${{ ! inputs.terminus-version }}
       run: |
         TERMINUS_RELEASE=$(curl --silent "https://api.github.com/repos/pantheon-systems/terminus/releases/latest" | perl -nle'print $& while m#"tag_name": "\K[^"]*#g')
         echo "TERMINUS_RELEASE=$TERMINUS_RELEASE" >> $GITHUB_ENV
@@ -21,6 +25,8 @@ runs:
         curl -L https://github.com/pantheon-systems/terminus/releases/download/$TERMINUS_RELEASE/terminus.phar --output terminus
         chmod +x terminus
         sudo ln -s ~/terminus/terminus /usr/local/bin/terminus
+      env:
+        TERMINUS_RELEASE: ${{ inputs.terminus-version || env.TERMINUS_RELEASE }}
 
     - name: Login to Pantheon
       shell: bash
