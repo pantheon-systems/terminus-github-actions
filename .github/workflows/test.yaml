@@ -19,6 +19,9 @@ jobs:
           pantheon-machine-token: ${{ secrets.PANTHEON_MACHINE_TOKEN }}
       - run: |
           terminus --version
+      - name: Reset
+        run: |
+          sudo rm -rf ~/terminus /usr/local/bin/terminus
       - name: Install Terminus
         uses: ackama/setup-terminus@support-terminus-version-test
         with:
