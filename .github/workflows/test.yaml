@@ -1,0 +1,21 @@
+name: Test supporting Terminus version
+on:
+  push:
+    branches:
+      - 'support-terminus-version-test'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+
+      - name: Install Terminus
+        uses: ackama/setup-terminus@support-terminus-version-test
+        with:
+          pantheon-machine-token: ${{ secrets.PANTHEON_MACHINE_TOKEN }}
+      - run: |
+          terminus --version
