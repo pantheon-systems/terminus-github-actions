@@ -1,0 +1,23 @@
+name: Test supporting installing build tools plugin
+on:
+  push:
+    branches:
+      - 'install-build-tools-test'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+
+      - name: Install Terminus
+        uses: ackama/setup-terminus@install-build-tools-test
+        with:
+          pantheon-machine-token: ${{ secrets.PANTHEON_MACHINE_TOKEN }}
+          install-build-tools: true
+      - run: |
+          terminus --version
+          terminus --help
