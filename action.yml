@@ -18,5 +18,6 @@ runs:
 
     - name: Login to Pantheon
       shell: bash
+      if: ${{ inputs.pantheon-machine-token }}
       run: |
         terminus auth:login --machine-token="${{ inputs.pantheon-machine-token }}"
