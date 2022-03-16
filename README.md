@@ -24,3 +24,24 @@ steps:
   - name: List sites
     runs: terminus site:list
 ```
+
+By default, this action installs the latest version of Terminus that has been
+released on GitHub. You can provide a specific version of Terminus to install
+using the `terminus-version` input:
+
+```yaml
+steps:
+  - name: Setup PHP
+    uses: shivammathur/setup-php@v2
+    with:
+      php-version: '7.4'
+
+  - name: Install Terminus
+    uses: ackama/setup-terminus@main
+    with:
+      pantheon-machine-token: ${{ secrets.PANTHEON_MACHINE_TOKEN }}
+      terminus-version: 2.6.5
+
+  - name: List sites
+    runs: terminus site:list
+```
