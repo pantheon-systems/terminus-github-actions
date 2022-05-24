@@ -1,3 +1,5 @@
+[![Actively Maintained](https://img.shields.io/badge/Pantheon-Actively_Maintained-yellow?logo=pantheon&color=FFDC28)](https://pantheon.io/docs/oss-support-levels#actively-maintained)
+
 # Setup Terminus
 
 A GitHub Action for quickly installing and configuring the Pantheon CLI tool,
@@ -17,7 +19,7 @@ steps:
       php-version: '7.4'
 
   - name: Install Terminus
-    uses: ackama/setup-terminus@main
+    uses: pantheon-systems/setup-terminus@main
     with:
       pantheon-machine-token: ${{ secrets.PANTHEON_MACHINE_TOKEN }}
 
@@ -37,7 +39,7 @@ steps:
       php-version: '7.4'
 
   - name: Install Terminus
-    uses: ackama/setup-terminus@main
+    uses: pantheon-systems/setup-terminus@main
     with:
       pantheon-machine-token: ${{ secrets.PANTHEON_MACHINE_TOKEN }}
       terminus-version: 2.6.5
