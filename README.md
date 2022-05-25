@@ -1,6 +1,6 @@
 [![Actively Maintained](https://img.shields.io/badge/Pantheon-Actively_Maintained-yellow?logo=pantheon&color=FFDC28)](https://pantheon.io/docs/oss-support-levels#actively-maintained)
 
-# Setup Terminus
+# Terminus GitHub Actions
 
 A GitHub Action for quickly installing and configuring the Pantheon CLI tool,
 [Terminus](https://github.com/pantheon-systems/terminus).
@@ -19,7 +19,7 @@ steps:
       php-version: '7.4'
 
   - name: Install Terminus
-    uses: pantheon-systems/setup-terminus@main
+    uses: pantheon-systems/terminus-github-actions@main
     with:
       pantheon-machine-token: ${{ secrets.PANTHEON_MACHINE_TOKEN }}
 
@@ -39,7 +39,7 @@ steps:
       php-version: '7.4'
 
   - name: Install Terminus
-    uses: pantheon-systems/setup-terminus@main
+    uses: pantheon-systems/terminus-github-actions@main
     with:
       pantheon-machine-token: ${{ secrets.PANTHEON_MACHINE_TOKEN }}
       terminus-version: 2.6.5
@@ -47,3 +47,7 @@ steps:
   - name: List sites
     runs: terminus site:list
 ```
+
+## Credits
+
+Big thanks to <a href="https://github.com/G-Rath">Gareth Jones</a> and <a href="https://www.ackama.com/">Ackama</a> for the initial development work.
