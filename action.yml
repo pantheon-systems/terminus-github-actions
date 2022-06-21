@@ -1,10 +1,11 @@
 name: Setup Terminus
-description: 'Install and configure the Pantheon CLI tool, Terminus.'
-icon: cloud
-color: yellow
+description: "Install and configure the Pantheon CLI tool, Terminus."
+branding:
+  icon: "cloud"
+  color: "yellow"
 inputs:
   pantheon-machine-token:
-    description: 'Machine token used to authenticate with Pantheon.'
+    description: "Machine token used to authenticate with Pantheon."
     required: true
   terminus-version:
     description: |
