@@ -20,4 +20,4 @@ jobs:
           install-build-tools: true
       - run: |
           terminus --version
-          terminus --help
+          terminus list
