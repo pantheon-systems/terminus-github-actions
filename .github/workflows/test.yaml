@@ -11,13 +11,12 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '7.4'
+          php-version: '8.1'
 
       - name: Install Terminus
         uses: ackama/setup-terminus@install-build-tools-test
         with:
           pantheon-machine-token: ${{ secrets.PANTHEON_MACHINE_TOKEN }}
-          terminus-version: 2.6.5
           install-build-tools-version: v2
       - run: |
           terminus --version
