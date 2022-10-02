@@ -39,7 +39,7 @@ runs:
 
     - name: Install Terminus Build Tools
       shell: bash
-      if: ${{ inputs.install-build-tools == true}}
+      if: ${{ inputs.install-build-tools == 'true' }}
       run: |
         terminus self:plugin:install terminus-build-tools-plugin
 
