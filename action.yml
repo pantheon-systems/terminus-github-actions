@@ -11,9 +11,11 @@ inputs:
     description: |
       The full version of Terminus to install. If omitted, the latest version is used.
     required: false
-  install-build-tools:
+  install-build-tools-version:
     description: |
-      Whether to install `terminus-build-tools-plugin` - only supported for Terminus v3
+      The version of `terminus-build-tools-plugin` to install, if any.
+
+      Should be `v3` for Terminus v3, and `v2` for Terminus v2 - any other values are ignored
     required: false
     default: "false"
 runs:
@@ -37,11 +39,18 @@ runs:
       env:
         TERMINUS_RELEASE: ${{ inputs.terminus-version || env.TERMINUS_RELEASE }}
 
-    - name: Install Terminus Build Tools
+    - name: Install Terminus Build Tools v3
       shell: bash
-      if: ${{ inputs.install-build-tools == 'true' }}
+      if: ${{ inputs.install-build-tools-version == 'v3' }}
       run: |
         terminus self:plugin:install terminus-build-tools-plugin
+
+    - name: Install Terminus Build Tools v2
+      shell: bash
+      if: ${{ inputs.install-build-tools-version == 'v2' }}
+      run: |
+        mkdir -p ~/.terminus/plugins
+        composer create-project --no-dev -d ~/.terminus/plugins pantheon-systems/terminus-build-tools-plugin:^2
 
 #    - name: Login to Pantheon
 #      shell: bash

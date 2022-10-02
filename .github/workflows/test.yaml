@@ -17,7 +17,7 @@ jobs:
         uses: ackama/setup-terminus@install-build-tools-test
         with:
           pantheon-machine-token: ${{ secrets.PANTHEON_MACHINE_TOKEN }}
-          install-build-tools: true
+          install-build-tools-version: v3
       - run: |
           terminus --version
           terminus list
