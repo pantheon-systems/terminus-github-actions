@@ -43,7 +43,7 @@ runs:
       run: |
         terminus self:plugin:install terminus-build-tools-plugin
 
-    - name: Login to Pantheon
-      shell: bash
-      run: |
-        terminus auth:login --machine-token="${{ inputs.pantheon-machine-token }}"
+#    - name: Login to Pantheon
+#      shell: bash
+#      run: |
+#        terminus auth:login --machine-token="${{ inputs.pantheon-machine-token }}"
