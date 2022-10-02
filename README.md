@@ -48,6 +48,31 @@ steps:
     runs: terminus site:list
 ```
 
+You can also specify a major version of the
+[`Terminus Build Tools plugin`](https://github.com/pantheon-systems/terminus-build-tools-plugin)
+to install with the `build-tools-plugin` input:
+
+```yaml
+steps:
+  - name: Setup PHP
+    uses: shivammathur/setup-php@v2
+    with:
+      php-version: '7.4'
+
+  - name: Install Terminus
+    uses: pantheon-systems/terminus-github-actions@main
+    with:
+      pantheon-machine-token: ${{ secrets.PANTHEON_MACHINE_TOKEN }}
+      build-tools-plugin: v3 # or v2, if you're using Terminus v2
+
+  - name: List build environments
+    runs: terminus build:env:list
+```
+
+> **Note**
+>
+> `composer` is required to install the build tools for v2
+
 ## Credits
 
 Big thanks to <a href="https://github.com/G-Rath">Gareth Jones</a> and <a href="https://www.ackama.com/">Ackama</a> for the initial development work.
