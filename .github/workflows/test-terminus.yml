@@ -1,9 +1,9 @@
 name: WIP Tests
 
 on:
-  push:
+  pull_request:
     branches:
-    - add/tests
+    - main
 
 jobs:
   test_terminus:
