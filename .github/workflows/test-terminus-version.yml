@@ -1,0 +1,38 @@
+name: 'Tests: Version'
+
+on:
+  workflow_call:
+    inputs:
+      php-version:
+        required: false
+        type: number
+        default: 8
+      terminus-version:
+        required: false
+        type: string
+        default: 3.0.6
+
+jobs:
+  test_version:
+    runs-on: ubuntu-latest
+    name: ${{ inputs.terminus-version }}
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ inputs.php-version }}
+
+      - name: Setup Terminus
+        uses: ./
+        with:
+          terminus-version: ${{ inputs.terminus-version }}
+
+      - name: Expect to be version ${{ inputs.terminus-version }}
+        run: |
+          terminus -V --no-ansi
+          if [[ $(terminus -V --no-ansi) != *"${{ inputs.terminus-version }}" ]]; then exit 1; fi
+

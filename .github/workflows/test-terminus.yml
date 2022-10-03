@@ -1,0 +1,57 @@
+name: WIP Tests
+
+on:
+  push:
+    branches:
+    - add/tests
+
+jobs:
+  test_terminus:
+    runs-on: ubuntu-latest
+    name: Terminus Setup
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Terminus
+        uses: ./
+
+      - name: Expect terminus command to be available
+        run: terminus -V
+
+      - name: Expect terminus to print art
+        run: terminus art
+
+  test_terminus_login:
+    runs-on: ubuntu-latest
+    name: Terminus Login
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Terminus
+        uses: ./
+        with:
+          pantheon-machine-token: ${{ secrets.PANTHEON_MACHINE_TOKEN }}
+
+      - name: Expect to be logged in
+        run: terminus whoami --no-ansi > /dev/null
+
+  test_terminus_version:
+    name: Terminus Version
+    uses: ./.github/workflows/test-terminus-version.yml
+
+  test_terminus_version_304:
+    name: Terminus Version
+    uses: ./.github/workflows/test-terminus-version.yml
+    with:
+      terminus-version: 3.0.4
+
+  test_terminus_version_266:
+    name: Terminus Version
+    uses: ./.github/workflows/test-terminus-version.yml
+    with:
+      php-version: 7.4
+      terminus-version: 2.6.6
