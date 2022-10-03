@@ -6,7 +6,7 @@ branding:
 inputs:
   pantheon-machine-token:
     description: "Machine token used to authenticate with Pantheon."
-    required: true
+    required: false
   terminus-version:
     description: |
       The full version of Terminus to install. If omitted, the latest version is used.
