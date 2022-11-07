@@ -1,4 +1,4 @@
-name: WIP Tests
+name: Terminus Github Action Tests
 
 on:
   pull_request:
