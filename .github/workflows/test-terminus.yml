@@ -33,11 +33,6 @@ jobs:
 
       - name: Setup Terminus
         uses: ./
-        with:
-          pantheon-machine-token: ${{ secrets.PANTHEON_MACHINE_TOKEN }}
-
-      - name: Expect to be logged in
-        run: terminus whoami --no-ansi > /dev/null
 
   test_terminus_version:
     name: Terminus Version
