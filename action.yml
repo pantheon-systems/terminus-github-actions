@@ -33,6 +33,7 @@ runs:
         TERMINUS_RELEASE: ${{ inputs.terminus-version || env.TERMINUS_RELEASE }}
 
     - name: Login to Pantheon
+      if: ${{ inputs.pantheon-machine-token }}
       shell: bash
       run: |
         terminus auth:login --machine-token="${{ inputs.pantheon-machine-token }}"
