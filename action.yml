@@ -18,7 +18,12 @@ runs:
       shell: bash
       if: ${{ ! inputs.terminus-version }}
       run: |
-        TERMINUS_RELEASE=$(curl --silent "https://api.github.com/repos/pantheon-systems/terminus/releases/latest" | perl -nle'print $& while m#"tag_name": "\K[^"]*#g')
+        TERMINUS_RELEASE=$(
+          curl --silent \
+            --header 'authorization: Bearer ${{ github.token }}' \
+            "https://api.github.com/repos/pantheon-systems/terminus/releases/latest" \
+            | perl -nle'print $& while m#"tag_name": "\K[^"]*#g'
+        )
         echo "TERMINUS_RELEASE=$TERMINUS_RELEASE" >> $GITHUB_ENV
 
     - name: Install Terminus
