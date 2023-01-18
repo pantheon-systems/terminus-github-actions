@@ -1,4 +1,4 @@
-name: Setup Pantheon Terminus
+name: Setup Terminus
 description: "Install and configure the Pantheon CLI tool, Terminus."
 branding:
   icon: "cloud"
