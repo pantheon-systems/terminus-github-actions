@@ -24,7 +24,7 @@ steps:
       pantheon-machine-token: ${{ secrets.PANTHEON_MACHINE_TOKEN }}
 
   - name: List sites
-    runs: terminus site:list
+    run: terminus site:list
 ```
 
 By default, this action installs the latest version of Terminus that has been
@@ -45,7 +45,7 @@ steps:
       terminus-version: 2.6.5
 
   - name: List sites
-    runs: terminus site:list
+    run: terminus site:list
 ```
 
 ## Credits
