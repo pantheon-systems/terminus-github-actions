@@ -48,6 +48,8 @@ steps:
     run: terminus site:list
 ```
 
+Please note that in order to run commands that require SSH (e.g. drush or wp-cli), you will need to setup a SSH key. There are plenty of options available in the [Github Actions Marketplace](https://github.com/marketplace?type=actions&query=ssh+key+). We recommend you to choose one of them and use them in your pipeline.
+
 ## Credits
 
 Big thanks to <a href="https://github.com/G-Rath">Gareth Jones</a> and <a href="https://www.ackama.com/">Ackama</a> for the initial development work.
