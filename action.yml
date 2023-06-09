@@ -34,11 +34,26 @@ runs:
         curl -L https://github.com/pantheon-systems/terminus/releases/download/$TERMINUS_RELEASE/terminus.phar --output terminus
         chmod +x terminus
         sudo ln -s ~/terminus/terminus /usr/local/bin/terminus
+        mkdir -p ~/.terminus/{cache,plugins}
       env:
         TERMINUS_RELEASE: ${{ inputs.terminus-version || env.TERMINUS_RELEASE }}
+
+    - uses: actions/cache@v3
+      id: terminus-cache
+      ## description: "Cache Terminus cache directory to eliminate auth API limits."
+      with:
+        path: $HOME/.terminus/
+        key: ${{ runner.os }}-terminus
+        restore-keys: |
+            ${{ runner.os }}-terminus-
 
     - name: Login to Pantheon
       if: ${{ inputs.pantheon-machine-token }}
       shell: bash
+      ## description: "Authenticate with Pantheon using a machine token only if a session has not already been established"
       run: |
-        terminus auth:login --machine-token="${{ inputs.pantheon-machine-token }}"
+        if [ -f ~/.terminus/cache/session ]; then
+          terminus auth:login
+        else
+          terminus auth:login --machine-token="${{ inputs.pantheon-machine-token }}"
+        fi
