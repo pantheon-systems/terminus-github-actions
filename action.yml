@@ -38,79 +38,27 @@ runs:
         echo "Installing Terminus v$TERMINUS_RELEASE"
         curl -L https://github.com/pantheon-systems/terminus/releases/download/$TERMINUS_RELEASE/terminus.phar --output terminus
         chmod +x terminus
-        sudo ln -s $HOME/terminus/terminus /usr/local/bin/terminus
-        mkdir -p $HOME/.terminus/{cache,plugins}
+        sudo ln -s ~/terminus/terminus /usr/local/bin/terminus
+        mkdir -p ~/.terminus/{cache,plugins}
       env:
         TERMINUS_RELEASE: ${{ inputs.terminus-version || env.TERMINUS_RELEASE }}
 
-    - name: Set cache path, key, and restore-key
-      id: configure-cache
-      shell: bash
-      run: |
-
-        # Generate a hash of the machine token to use as a restore-key.
-        machine_token_hash=`echo ${{ inputs.pantheon-machine-token }} | sha256sum | head -c 40`
-        restore_key="terminus-session-$machine_token_hash"
-
-        # Set path, cache key, and restore-key for later steps.
-        echo "path=${{ runner.temp }}/terminus-session.enc" >> $GITHUB_OUTPUT
-        echo "restore-key=$restore_key-" >> $GITHUB_OUTPUT
-        echo "key=$restore_key-${{ github.run_id }}" >> $GITHUB_OUTPUT
-
-    - name: Restore cached encrypted Terminus session
-      id: restore-cache
-      if: ${{ inputs.disable-cache != 'true' }}
-      uses: actions/cache/restore@v4
+    - uses: actions/cache@v3
+      id: terminus-cache
+      ## description: "Cache Terminus cache directory to eliminate auth API limits."
       with:
-        path: ${{ steps.configure-cache.outputs.path }}
-        key: ${{ steps.configure-cache.outputs.key }}
-        enableCrossOsArchive: true
+        path: $HOME/.terminus/
+        key: ${{ runner.os }}-terminus
+        restore-keys: |
+            ${{ runner.os }}-terminus-
 
-    - name: Decrypt cached session file
-      id: decrypt
-      if: ${{ steps.restore-cache.outcome == 'success' }}
-      continue-on-error: true
+    - name: Login to Pantheon
+      if: ${{ inputs.pantheon-machine-token }}
       shell: bash
+      ## description: "Authenticate with Pantheon using a machine token only if a session has not already been established"
       run: |
-
-        # Verify that the encrypted session file was restored from cache.
-        test -s ${{ steps.configure-cache.outputs.path }}
-
-        # Decrypt the session file.
-        echo "${{ inputs.pantheon-machine-token }}" | \
-        openssl enc -d -aes-256-cbc -pbkdf2 -iter 10000 -pass stdin -in ${{ steps.configure-cache.outputs.path }} -out $HOME/.terminus/cache/session
-
-        # Check if restored session is still valid
-        TERMINUS_USER=$(terminus auth:whoami)
-
-        if [ -z "$TERMINUS_USER" ]; then
-          echo "No valid session found. "
-          exit 1
+        if [ -f ~/.terminus/cache/session ]; then
+          terminus auth:login
+        else
+          terminus auth:login --machine-token="${{ inputs.pantheon-machine-token }}"
         fi
-
-        echo "Valid session found: $TERMINUS_USER"
-
-    - name: Authenticate Terminus
-      id: authenticate
-      if: ${{ inputs.pantheon-machine-token && steps.decrypt.outcome != 'success' }}
-      shell: bash
-      run: |
-
-        # Running this step means the session was not restored from cache
-        # and needs to be re-authenticated.
-
-        # Authenticate with Pantheon using the machine token.
-        terminus auth:login --machine-token="${{ inputs.pantheon-machine-token }}"
-
-        # Encrypt the session file.
-        echo "${{ inputs.pantheon-machine-token }}" | \
-        openssl enc -aes-256-cbc -salt -pbkdf2 -iter 10000 -pass stdin -in $HOME/.terminus/cache/session -out ${{ steps.configure-cache.outputs.path }}
-
-    - name: Cache encrypted Terminus session
-      id: save-cache
-      if: ${{ steps.authenticate.outcome == 'success' }}
-      uses: actions/cache/save@v4
-      with:
-        path: ${{ steps.configure-cache.outputs.path }}
-        key: ${{ steps.configure-cache.outputs.key }}
-        enableCrossOsArchive: true
