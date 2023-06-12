@@ -52,8 +52,4 @@ runs:
       shell: bash
       ## description: "Authenticate with Pantheon using a machine token only if a session has not already been established"
       run: |
-        if [ -f ~/.terminus/cache/session ]; then
-          terminus auth:login
-        else
-          terminus auth:login --machine-token="${{ inputs.pantheon-machine-token }}"
-        fi
+        terminus auth:login || terminus auth:login --machine-token="${{ inputs.pantheon-machine-token }}"
