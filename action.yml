@@ -40,7 +40,7 @@ runs:
     - name: Login to Pantheon by restoring existing Terminus session or initiating new
       if: ${{ inputs.pantheon-machine-token }}
       shell: bash
-      uses: lullabot/terminus-auth-with-session-cache@v2
+      uses: lullabot/terminus-auth-with-session-cache@v3
       with:
         pantheon-machine-token: ${{ secrets.PANTHEON_MACHINE_TOKEN }}
         # Set 'ddev: true' if using DDEV in GitHub Actions.
