@@ -53,7 +53,7 @@ runs:
           ${{ runner.os }}-terminus-plugins-
 
     - name: Set a cache path, key, and restore-key
-      id: cache
+      id: configure-cache
       shell: bash
       run: |
 
@@ -73,7 +73,7 @@ runs:
 
     - name: Restore cached encrypted Terminus session
       id: restore-cache
-      if: inputs.disable-cache != 'true'
+      if: ${{ inputs.disable-cache != 'true' }}
       uses: actions/cache/restore@v4
       with:
         path: ${{ steps.cache.outputs.path }}
@@ -81,9 +81,9 @@ runs:
         restore-keys: ${{ steps.cache.outputs.restore-key }}
         enableCrossOsArchive: true
 
-    - name: Decrypt and set cached session file
+    - name: Decrypt cached session file
       id: decrypt
-      if: steps.restore-cache.outcome == 'success'
+      if: ${{ steps.restore-cache.outcome == 'success' }}
       continue-on-error: true
       shell: bash
       run: |
@@ -106,17 +106,21 @@ runs:
         mv terminus-session-temp $TERMINUS_CACHE_DIR/session
 
         # Check if restored session is still valid
-        terminus auth:whoami | grep -v "You are not logged in"
+        terminus auth:whoami
 
-    - name: Create new Terminus session (if needed)
-      id: encrypt
-      if: steps.decrypt.outcome != 'success'
+    - name: Authenticate Terminus
+      id: authenticate
+      if: ${{ inputs.pantheon-machine-token }}
+      continue-on-error: true
       shell: bash
       run: |
-
-        # Initiate a new Terminus session because the old one was missing or
-        # expired, and encrypt new session file into GitHub Actions cache path.
         terminus auth:login || terminus auth:login --machine-token="${{ inputs.pantheon-machine-token }}"
+
+    - name: Encrypt new Terminus session (if needed)
+      id: encrypt-cache
+      if: ${{ steps.decrypt.outcome != 'success' && steps.authenticate.outcome == 'success'}}
+      shell: bash
+      run: |
 
         # Copy the session file to a mounted folder
         cp $TERMINUS_CACHE_DIR/session terminus-session-temp
@@ -137,8 +141,8 @@ runs:
         rm terminus-session-temp
 
     - name: Cache encrypted Terminus session
-      id: encrypt-cache
-      if: steps.encrypt.outcome == 'success'
+      id: save-cache
+      if: ${{ steps.encrypt.outcome == 'success' }}
       uses: actions/cache/save@v4
       with:
         path: ${{ steps.cache.outputs.path }}
