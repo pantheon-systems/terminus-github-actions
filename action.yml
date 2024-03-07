@@ -11,10 +11,15 @@ inputs:
     description: |
       The full version of Terminus to install. If omitted, the latest version is used.
     required: false
+  disable-cache:
+    description: Disable session cache and force a new session to be initiated.
+    required: false
+    default: false
+
 runs:
   using: composite
   steps:
-    - name: Determine version
+    - name: Set Terminus version
       shell: bash
       if: ${{ ! inputs.terminus-version }}
       run: |
@@ -29,27 +34,113 @@ runs:
     - name: Install Terminus
       shell: bash
       run: |
-        mkdir ~/terminus && cd ~/terminus
+        mkdir $HOME/terminus && cd $HOME/terminus
         echo "Installing Terminus v$TERMINUS_RELEASE"
         curl -L https://github.com/pantheon-systems/terminus/releases/download/$TERMINUS_RELEASE/terminus.phar --output terminus
         chmod +x terminus
-        sudo ln -s ~/terminus/terminus /usr/local/bin/terminus
-        mkdir -p ~/.terminus/{cache,plugins}
+        sudo ln -s $HOME/terminus/terminus /usr/local/bin/terminus
+        mkdir -p $HOME/.terminus/{cache,plugins}
       env:
         TERMINUS_RELEASE: ${{ inputs.terminus-version || env.TERMINUS_RELEASE }}
 
-    - uses: actions/cache@v3
-      id: terminus-cache
-      ## description: "Cache Terminus cache directory to eliminate auth API limits."
+    - name: Cache Terminus plugin directory
+      uses: actions/cache@v4
+      id: terminus-plugin-cache
       with:
-        path: $HOME/.terminus/
-        key: ${{ runner.os }}-terminus
+        path: $HOME/.terminus/plugins
+        key: ${{ runner.os }}-terminus-plugins
         restore-keys: |
-            ${{ runner.os }}-terminus-
+          ${{ runner.os }}-terminus-plugins-
 
-    - name: Login to Pantheon
-      if: ${{ inputs.pantheon-machine-token }}
+    - name: Set a cache path, key, and restore-key
+      id: cache
       shell: bash
-      ## description: "Authenticate with Pantheon using a machine token only if a session has not already been established"
       run: |
+
+        # Set cache path, key, and restore-key.
+        echo "path=${{ runner.temp }}/terminus-session.gpg" >> $GITHUB_OUTPUT
+
+        machine_token_hash=`echo ${{ inputs.pantheon-machine-token }} | sha256sum | head -c 40`
+        restore_key="terminus-session-$machine_token_hash"
+        echo "restore-key=$restore_key-" >> $GITHUB_OUTPUT
+
+        # Use the GitHub Actions "run id" to uniqify the cache key so that we
+        # can force initiating a new session when requested via action input
+        # (GitHub Actions caches are immutable and can't be updated for a given
+        # key).
+        # @see https://github.com/actions/cache/blob/main/tips-and-workarounds.md#update-a-cache
+        echo "key=$restore_key-${{ github.run_id }}" >> $GITHUB_OUTPUT
+
+    - name: Restore cached encrypted Terminus session
+      id: restore-cache
+      if: inputs.disable-cache != 'true'
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ steps.cache.outputs.path }}
+        key: ${{ steps.cache.outputs.key }}
+        restore-keys: ${{ steps.cache.outputs.restore-key }}
+        enableCrossOsArchive: true
+
+    - name: Decrypt and set cached session file
+      id: decrypt
+      if: steps.restore-cache.outcome == 'success'
+      continue-on-error: true
+      shell: bash
+      run: |
+
+        # Verify that the encrypted session file was restored from cache.
+        test -s ${{ steps.cache.outputs.path }}
+
+        # Decrypt the session file using the "file descriptor" passphrase option
+        # (--passphrase-fd) instead of regular --passphrase because it's more
+        # secure to pipe the secret than to pass it as a command argument.
+        echo ${{ inputs.pantheon-machine-token }} | \
+          gpg2 --passphrase-fd \
+               --batch \
+               --yes \
+               --pinentry loopback \
+               --output terminus-session-temp \
+               --decrypt ${{ steps.cache.outputs.path }}
+
+        # Move the session file into the Terminus cache directory.
+        mv terminus-session-temp $TERMINUS_CACHE_DIR/session
+
+        # Check if restored session is still valid
+        terminus auth:whoami | grep -v "You are not logged in"
+
+    - name: Create new Terminus session (if needed)
+      id: encrypt
+      if: steps.decrypt.outcome != 'success'
+      run: |
+
+        # Initiate a new Terminus session because the old one was missing or
+        # expired, and encrypt new session file into GitHub Actions cache path.
         terminus auth:login || terminus auth:login --machine-token="${{ inputs.pantheon-machine-token }}"
+
+        # Copy the session file to a mounted folder
+        $TERMINUS_CACHE_DIR/session terminus-session-temp
+
+        # Encrypt the session file using the "file descriptor" passphrase option
+        # (--passphrase-fd) instead of regular --passphrase because it's more
+        # secure to pipe the secret than pass it as a command argument.
+
+        echo ${{ inputs.pantheon-machine-token }} | \
+          gpg2 --passphrase-fd \
+               --batch \
+               --yes \
+               --pinentry-mode loopback \
+               --output ${{ steps.cache.outputs.path }} \
+               --symmetric terminus-session-temp
+
+        # Remove the temporary session file we copied.
+        rm terminus-session-temp
+      shell: bash
+
+    - name: Cache encrypted Terminus session
+      id: encrypt-cache
+      if: steps.encrypt.outcome == 'success'
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ steps.cache.outputs.path }}
+        key: ${{ steps.cache.outputs.key }}
+        enableCrossOsArchive: true
