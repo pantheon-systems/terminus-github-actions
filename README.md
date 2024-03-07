@@ -16,7 +16,7 @@ steps:
   - name: Setup PHP
     uses: shivammathur/setup-php@v2
     with:
-      php-version: '7.4'
+      php-version: "7.4"
 
   - name: Install Terminus
     uses: pantheon-systems/terminus-github-actions@main
@@ -36,7 +36,7 @@ steps:
   - name: Setup PHP
     uses: shivammathur/setup-php@v2
     with:
-      php-version: '7.4'
+      php-version: "7.4"
 
   - name: Install Terminus
     uses: pantheon-systems/terminus-github-actions@main
@@ -46,6 +46,17 @@ steps:
 
   - name: List sites
     run: terminus site:list
+```
+
+This action will encrypt and cache the Terminus session by default to be re-used across jobs in a workflow to reduce the number of authorizations. If you need to disable this for some reason, you can set the `disable-cache` option to `true`.
+
+```yaml
+steps:
+  - name: Install Terminus
+    uses: pantheon-systems/terminus-github-actions@main
+    with:
+      pantheon-machine-token: ${{ secrets.PANTHEON_MACHINE_TOKEN }}
+      disable-cache: true
 ```
 
 Please note that in order to run commands that require SSH (e.g. drush or wp-cli), you will need to setup a SSH key. There are plenty of options available in the [Github Actions Marketplace](https://github.com/marketplace?type=actions&query=ssh+key+). We recommend you to choose one of them and use them in your pipeline.

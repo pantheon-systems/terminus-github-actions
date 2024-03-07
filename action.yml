@@ -20,8 +20,8 @@ runs:
   using: composite
   steps:
     - name: Set Terminus version
-      shell: bash
       if: ${{ ! inputs.terminus-version }}
+      shell: bash
       run: |
         TERMINUS_RELEASE=$(
           curl --silent \
@@ -111,6 +111,7 @@ runs:
     - name: Create new Terminus session (if needed)
       id: encrypt
       if: steps.decrypt.outcome != 'success'
+      shell: bash
       run: |
 
         # Initiate a new Terminus session because the old one was missing or
@@ -118,7 +119,7 @@ runs:
         terminus auth:login || terminus auth:login --machine-token="${{ inputs.pantheon-machine-token }}"
 
         # Copy the session file to a mounted folder
-        $TERMINUS_CACHE_DIR/session terminus-session-temp
+        cp $TERMINUS_CACHE_DIR/session terminus-session-temp
 
         # Encrypt the session file using the "file descriptor" passphrase option
         # (--passphrase-fd) instead of regular --passphrase because it's more
@@ -134,7 +135,6 @@ runs:
 
         # Remove the temporary session file we copied.
         rm terminus-session-temp
-      shell: bash
 
     - name: Cache encrypted Terminus session
       id: encrypt-cache
