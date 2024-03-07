@@ -76,9 +76,9 @@ runs:
       if: ${{ inputs.disable-cache != 'true' }}
       uses: actions/cache/restore@v4
       with:
-        path: ${{ steps.cache.outputs.path }}
-        key: ${{ steps.cache.outputs.key }}
-        restore-keys: ${{ steps.cache.outputs.restore-key }}
+        path: ${{ steps.configure-cache.outputs.path }}
+        key: ${{ steps.configure-cache.outputs.key }}
+        restore-keys: ${{ steps.configure-cache.outputs.restore-key }}
         enableCrossOsArchive: true
 
     - name: Decrypt cached session file
@@ -89,7 +89,7 @@ runs:
       run: |
 
         # Verify that the encrypted session file was restored from cache.
-        test -s ${{ steps.cache.outputs.path }}
+        test -s ${{ steps.configure-cache.outputs.path }}
 
         # Decrypt the session file using the "file descriptor" passphrase option
         # (--passphrase-fd) instead of regular --passphrase because it's more
@@ -100,7 +100,7 @@ runs:
                --yes \
                --pinentry loopback \
                --output terminus-session-temp \
-               --decrypt ${{ steps.cache.outputs.path }}
+               --decrypt ${{ steps.configure-cache.outputs.path }}
 
         # Move the session file into the Terminus cache directory.
         mv terminus-session-temp $HOME/.terminus/cache/session
@@ -128,13 +128,12 @@ runs:
         # Encrypt the session file using the "file descriptor" passphrase option
         # (--passphrase-fd) instead of regular --passphrase because it's more
         # secure to pipe the secret than pass it as a command argument.
-
         echo ${{ inputs.pantheon-machine-token }} | \
           gpg2 --passphrase-fd \
                --batch \
                --yes \
                --pinentry-mode loopback \
-               --output ${{ steps.cache.outputs.path }} \
+               --output ${{ steps.configure-cache.outputs.path }} \
                --symmetric terminus-session-temp
 
         # Remove the temporary session file we copied.
@@ -145,6 +144,6 @@ runs:
       if: ${{ steps.encrypt.outcome == 'success' }}
       uses: actions/cache/save@v4
       with:
-        path: ${{ steps.cache.outputs.path }}
-        key: ${{ steps.cache.outputs.key }}
+        path: ${{ steps.configure-cache.outputs.path }}
+        key: ${{ steps.configure-cache.outputs.key }}
         enableCrossOsArchive: true
