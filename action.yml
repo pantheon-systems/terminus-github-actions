@@ -103,7 +103,7 @@ runs:
                --decrypt ${{ steps.cache.outputs.path }}
 
         # Move the session file into the Terminus cache directory.
-        mv terminus-session-temp $TERMINUS_CACHE_DIR/session
+        mv terminus-session-temp $HOME/.terminus/cache/session
 
         # Check if restored session is still valid
         terminus auth:whoami
@@ -123,7 +123,7 @@ runs:
       run: |
 
         # Copy the session file to a mounted folder
-        cp $TERMINUS_CACHE_DIR/session terminus-session-temp
+        cp $HOME/.terminus/cache/session terminus-session-temp
 
         # Encrypt the session file using the "file descriptor" passphrase option
         # (--passphrase-fd) instead of regular --passphrase because it's more
