@@ -88,7 +88,7 @@ runs:
 
         # Decrypt the session file.
         echo "${{ inputs.pantheon-machine-token }}" | \
-        openssl enc -d -aes-256-cbc -pass stdin -in ${{ steps.configure-cache.outputs.path }} -out terminus-session-temp
+        openssl enc -d -aes-256-cbc -pbkdf2 -iter 10000 -pass stdin -in ${{ steps.configure-cache.outputs.path }} -out terminus-session-temp
 
         # Move the session file into the Terminus cache directory.
         mv terminus-session-temp $HOME/.terminus/cache/session
@@ -115,7 +115,7 @@ runs:
 
         # Encrypt the session file.
         echo "${{ inputs.pantheon-machine-token }}" | \
-        openssl enc -aes-256-cbc -salt -pass stdin -in terminus-session-temp -out ${{ steps.configure-cache.outputs.path }}
+        openssl enc -aes-256-cbc -salt -pbkdf2 -iter 10000 -pass stdin -in terminus-session-temp -out ${{ steps.configure-cache.outputs.path }}
 
         # Remove the temporary session file we copied.
         rm terminus-session-temp
