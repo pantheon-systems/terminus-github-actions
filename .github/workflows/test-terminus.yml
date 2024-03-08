@@ -3,16 +3,15 @@ name: Terminus Github Action Tests
 on:
   pull_request:
     branches:
-    - main
+      - main
 
 jobs:
   test_terminus:
     runs-on: ubuntu-latest
     name: Terminus Setup
     steps:
-
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Terminus
         uses: ./
@@ -27,9 +26,8 @@ jobs:
     runs-on: ubuntu-latest
     name: Terminus Login
     steps:
-
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Terminus
         uses: ./
