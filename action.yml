@@ -43,16 +43,7 @@ runs:
       env:
         TERMINUS_RELEASE: ${{ inputs.terminus-version || env.TERMINUS_RELEASE }}
 
-    - name: Cache Terminus plugin directory
-      uses: actions/cache@v4
-      id: terminus-plugin-cache
-      with:
-        path: $HOME/.terminus/plugins
-        key: ${{ runner.os }}-terminus-plugins
-        restore-keys: |
-          ${{ runner.os }}-terminus-plugins-
-
-    - name: Set a cache path, key, and restore-key
+    - name: Set cache path, key, and restore-key
       id: configure-cache
       shell: bash
       run: |
@@ -88,41 +79,37 @@ runs:
 
         # Decrypt the session file.
         echo "${{ inputs.pantheon-machine-token }}" | \
-        openssl enc -d -aes-256-cbc -pbkdf2 -iter 10000 -pass stdin -in ${{ steps.configure-cache.outputs.path }} -out terminus-session-temp
-
-        # Move the session file into the Terminus cache directory.
-        mv terminus-session-temp $HOME/.terminus/cache/session
+        openssl enc -d -aes-256-cbc -pbkdf2 -iter 10000 -pass stdin -in ${{ steps.configure-cache.outputs.path }} -out $HOME/.terminus/cache/session
 
         # Check if restored session is still valid
-        terminus auth:whoami
+        TERMINUS_USER=$(terminus auth:whoami)
+
+        if [ -z "$TERMINUS_USER" ]; then
+          echo "No valid session found. "
+          exit 1
+        fi
+
+        echo "Valid session found: $TERMINUS_USER"
 
     - name: Authenticate Terminus
       id: authenticate
-      if: ${{ inputs.pantheon-machine-token }}
-      continue-on-error: true
-      shell: bash
-      run: |
-        terminus auth:login || terminus auth:login --machine-token="${{ inputs.pantheon-machine-token }}"
-
-    - name: Encrypt new Terminus session (if needed)
-      id: encrypt-cache
-      if: ${{ steps.decrypt.outcome != 'success' && steps.authenticate.outcome == 'success'}}
+      if: ${{ inputs.pantheon-machine-token && steps.decrypt.outcome != 'success' }}
       shell: bash
       run: |
 
-        # Copy the session file to a mounted folder
-        cp $HOME/.terminus/cache/session terminus-session-temp
+        # Running this step means the session was not restored from cache
+        # and needs to be re-authenticated.
+
+        # Authenticate with Pantheon using the machine token.
+        terminus auth:login --machine-token="${{ inputs.pantheon-machine-token }}"
 
         # Encrypt the session file.
         echo "${{ inputs.pantheon-machine-token }}" | \
-        openssl enc -aes-256-cbc -salt -pbkdf2 -iter 10000 -pass stdin -in terminus-session-temp -out ${{ steps.configure-cache.outputs.path }}
-
-        # Remove the temporary session file we copied.
-        rm terminus-session-temp
+        openssl enc -aes-256-cbc -salt -pbkdf2 -iter 10000 -pass stdin -in $HOME/.terminus/cache/session -out ${{ steps.configure-cache.outputs.path }}
 
     - name: Cache encrypted Terminus session
       id: save-cache
-      if: ${{ steps.encrypt-cache.outcome == 'success' }}
+      if: ${{ steps.authenticate.outcome == 'success' }}
       uses: actions/cache/save@v4
       with:
         path: ${{ steps.configure-cache.outputs.path }}
