@@ -57,18 +57,13 @@ runs:
       shell: bash
       run: |
 
-        # Set cache path, key, and restore-key.
-        echo "path=${{ runner.temp }}/terminus-session.gpg" >> $GITHUB_OUTPUT
-
+        # Generate a hash of the machine token to use as a restore-key.
         machine_token_hash=`echo ${{ inputs.pantheon-machine-token }} | sha256sum | head -c 40`
         restore_key="terminus-session-$machine_token_hash"
-        echo "restore-key=$restore_key-" >> $GITHUB_OUTPUT
 
-        # Use the GitHub Actions "run id" to uniqify the cache key so that we
-        # can force initiating a new session when requested via action input
-        # (GitHub Actions caches are immutable and can't be updated for a given
-        # key).
-        # @see https://github.com/actions/cache/blob/main/tips-and-workarounds.md#update-a-cache
+        # Set path, cache key, and restore-key for later steps.
+        echo "path=${{ runner.temp }}/terminus-session.gpg" >> $GITHUB_OUTPUT
+        echo "restore-key=$restore_key-" >> $GITHUB_OUTPUT
         echo "key=$restore_key-${{ github.run_id }}" >> $GITHUB_OUTPUT
 
     - name: Restore cached encrypted Terminus session
@@ -91,16 +86,9 @@ runs:
         # Verify that the encrypted session file was restored from cache.
         test -s ${{ steps.configure-cache.outputs.path }}
 
-        # Decrypt the session file using the "file descriptor" passphrase option
-        # (--passphrase-fd) instead of regular --passphrase because it's more
-        # secure to pipe the secret than to pass it as a command argument.
-        echo ${{ inputs.pantheon-machine-token }} | \
-          gpg2 --passphrase-fd \
-               --batch \
-               --yes \
-               --pinentry loopback \
-               --output terminus-session-temp \
-               --decrypt ${{ steps.configure-cache.outputs.path }}
+        # Decrypt the session file.
+        echo "${{ inputs.pantheon-machine-token }}" | \
+        openssl enc -d -aes-256-cbc -pass stdin -in ${{ steps.configure-cache.outputs.path }} -out terminus-session-temp
 
         # Move the session file into the Terminus cache directory.
         mv terminus-session-temp $HOME/.terminus/cache/session
@@ -125,16 +113,9 @@ runs:
         # Copy the session file to a mounted folder
         cp $HOME/.terminus/cache/session terminus-session-temp
 
-        # Encrypt the session file using the "file descriptor" passphrase option
-        # (--passphrase-fd) instead of regular --passphrase because it's more
-        # secure to pipe the secret than pass it as a command argument.
-        echo ${{ inputs.pantheon-machine-token }} | \
-          gpg2 --passphrase-fd \
-               --batch \
-               --yes \
-               --pinentry-mode loopback \
-               --output ${{ steps.configure-cache.outputs.path }} \
-               --symmetric terminus-session-temp
+        # Encrypt the session file.
+        echo "${{ inputs.pantheon-machine-token }}" | \
+        openssl enc -aes-256-cbc -salt -pass stdin -in terminus-session-temp -out ${{ steps.configure-cache.outputs.path }}
 
         # Remove the temporary session file we copied.
         rm terminus-session-temp
