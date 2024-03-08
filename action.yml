@@ -62,7 +62,7 @@ runs:
         restore_key="terminus-session-$machine_token_hash"
 
         # Set path, cache key, and restore-key for later steps.
-        echo "path=${{ runner.temp }}/terminus-session.gpg" >> $GITHUB_OUTPUT
+        echo "path=${{ runner.temp }}/terminus-session.enc" >> $GITHUB_OUTPUT
         echo "restore-key=$restore_key-" >> $GITHUB_OUTPUT
         echo "key=$restore_key-${{ github.run_id }}" >> $GITHUB_OUTPUT
 
@@ -122,7 +122,7 @@ runs:
 
     - name: Cache encrypted Terminus session
       id: save-cache
-      if: ${{ steps.encrypt.outcome == 'success' }}
+      if: ${{ steps.encrypt-cache.outcome == 'success' }}
       uses: actions/cache/save@v4
       with:
         path: ${{ steps.configure-cache.outputs.path }}
