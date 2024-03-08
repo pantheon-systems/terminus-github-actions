@@ -64,7 +64,6 @@ runs:
       with:
         path: ${{ steps.configure-cache.outputs.path }}
         key: ${{ steps.configure-cache.outputs.key }}
-        restore-keys: ${{ steps.configure-cache.outputs.restore-key }}
         enableCrossOsArchive: true
 
     - name: Decrypt cached session file
