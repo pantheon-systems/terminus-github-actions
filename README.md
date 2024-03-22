@@ -19,7 +19,7 @@ steps:
       php-version: "7.4"
 
   - name: Install Terminus
-    uses: pantheon-systems/terminus-github-actions@main
+    uses: pantheon-systems/terminus-github-actions@v1
     with:
       pantheon-machine-token: ${{ secrets.PANTHEON_MACHINE_TOKEN }}
 
@@ -39,7 +39,7 @@ steps:
       php-version: "7.4"
 
   - name: Install Terminus
-    uses: pantheon-systems/terminus-github-actions@main
+    uses: pantheon-systems/terminus-github-actions@v1
     with:
       pantheon-machine-token: ${{ secrets.PANTHEON_MACHINE_TOKEN }}
       terminus-version: 2.6.5
@@ -53,7 +53,7 @@ This action will encrypt and cache the Terminus session by default to be re-used
 ```yaml
 steps:
   - name: Install Terminus
-    uses: pantheon-systems/terminus-github-actions@main
+    uses: pantheon-systems/terminus-github-actions@v1
     with:
       pantheon-machine-token: ${{ secrets.PANTHEON_MACHINE_TOKEN }}
       disable-cache: true
