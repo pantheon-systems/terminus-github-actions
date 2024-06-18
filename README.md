@@ -61,6 +61,30 @@ steps:
 
 Please note that in order to run commands that require SSH (e.g. drush or wp-cli), you will need to setup a SSH key. There are plenty of options available in the [Github Actions Marketplace](https://github.com/marketplace?type=actions&query=ssh+key+). We recommend you to choose one of them and use them in your pipeline.
 
+## Diagram
+
+```mermaid
+graph TD
+
+subgraph Setup Terminus GitHub Action
+  A[Start] --> B{inputs.terminus-version}
+  B --> |Yes| C[Set TERMINUS_RELEASE to inputs.terminus-version]
+  B --> |No| D[Get latest Terminus release from GitHub API]
+  D --> E[Set TERMINUS_RELEASE to latest version]
+  C --> F[Install Terminus]
+  E --> F
+  F --> G[Cache Terminus Directory]
+  G --> H{inputs.pantheon-machine-token}
+  H --> |Yes| I[Login to Pantheon]
+  H --> |No| J[End]
+  I --> J
+end
+
+style A fill:#f9f,stroke:#333,stroke-width:2px;
+style J fill:#f9f,stroke:#333,stroke-width:2px;
+
+```
+
 ## Credits
 
 Big thanks to <a href="https://github.com/G-Rath">Gareth Jones</a> and <a href="https://www.ackama.com/">Ackama</a> for the initial development work.
