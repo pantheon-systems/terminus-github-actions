@@ -108,7 +108,7 @@ runs:
 
     - name: Cache encrypted Terminus session
       id: save-cache
-      if: ${{ steps.authenticate.outcome == 'success' }}
+      if: ${{ steps.authenticate.outcome == 'success' && inputs.disable-cache != 'true'}}
       uses: actions/cache/save@v4
       with:
         path: ${{ steps.configure-cache.outputs.path }}
