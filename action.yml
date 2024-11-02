@@ -84,15 +84,15 @@ runs:
         TERMINUS_USER=$(terminus auth:whoami)
 
         if [ -z "$TERMINUS_USER" ]; then
-          echo "No valid session found. "
-          exit 1
+          # No user, skip step to continue to authenticate.
+          exit 0
         fi
 
         echo "Valid session found: $TERMINUS_USER"
 
     - name: Authenticate Terminus
       id: authenticate
-      if: ${{ inputs.pantheon-machine-token && steps.decrypt.outcome != 'success' }}
+      if: ${{ inputs.pantheon-machine-token && steps.decrypt.outcome != 'skipped' }}
       shell: bash
       run: |
 
