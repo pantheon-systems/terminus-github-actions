@@ -84,7 +84,7 @@ runs:
         TERMINUS_USER=$(terminus auth:whoami)
 
         if [ -z "$TERMINUS_USER" ]; then
-          # No user, skip step to continue to authenticate.
+          echo "No valid session found. "
           exit 0
         fi
 
