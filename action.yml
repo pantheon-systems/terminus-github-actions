@@ -71,6 +71,9 @@ runs:
       if: ${{ steps.restore-cache.outcome == 'success' }}
       shell: bash
       run: |
+        # Default to no session.
+        echo "session_found=false" >> $GITHUB_OUTPUT
+
         # Verify that the encrypted session file was restored from cache.
         if [ ! -s "${{ steps.configure-cache.outputs.path }}" ]; then
           echo "No session file found in cache."
@@ -91,10 +94,11 @@ runs:
         fi
 
         echo "Valid session found: $TERMINUS_USER"
+        echo "session_found=true" >> $GITHUB_OUTPUT
 
     - name: Authenticate Terminus
       id: authenticate
-      if: ${{ inputs.pantheon-machine-token && steps.decrypt.outcome != 'success' }}
+      if: ${{ inputs.pantheon-machine-token && steps.decrypt.outputs.session_found != 'true' }}
       shell: bash
       run: |
 
