@@ -69,20 +69,22 @@ runs:
     - name: Decrypt cached session file
       id: decrypt
       if: ${{ steps.restore-cache.outcome == 'success' }}
-      continue-on-error: true
       shell: bash
       run: |
-
         # Verify that the encrypted session file was restored from cache.
-        test -s ${{ steps.configure-cache.outputs.path }}
+        if [ ! -s "${{ steps.configure-cache.outputs.path }}" ]; then
+          echo "No session file found in cache."
+          exit 0
+        fi
 
         # Decrypt the session file.
         echo "${{ inputs.pantheon-machine-token }}" | \
         openssl enc -d -aes-256-cbc -pbkdf2 -iter 10000 -pass stdin -in ${{ steps.configure-cache.outputs.path }} -out $HOME/.terminus/cache/session
 
-        # Check if restored session is still valid
-        TERMINUS_USER=$(terminus auth:whoami)
+        # Check for restored user (string) or allow command to fail gracefully.
+        TERMINUS_USER=$(terminus auth:whoami || true)
 
+        # Check TERMINUS_USER for string.
         if [ -z "$TERMINUS_USER" ]; then
           echo "No valid session found. "
           exit 0
@@ -92,7 +94,7 @@ runs:
 
     - name: Authenticate Terminus
       id: authenticate
-      if: ${{ inputs.pantheon-machine-token && steps.decrypt.outcome != 'skipped' }}
+      if: ${{ inputs.pantheon-machine-token && steps.decrypt.outcome != 'success' }}
       shell: bash
       run: |
 
