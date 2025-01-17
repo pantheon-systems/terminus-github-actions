@@ -1,0 +1,48 @@
+name: "Tests: Version"
+
+on:
+  workflow_call:
+    inputs:
+      php-version:
+        required: false
+        type: number
+        default: 8.2
+      terminus-version:
+        required: false
+        type: string
+        default: 3.6.1
+      pantheon-machine-token:
+        required: true
+        type: string
+      pantheon-sitename:
+        required: true
+        type: string
+
+jobs:
+  test-ensure-multidev:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ inputs.php-version }}
+
+      - name: Install dependencies
+        run: composer install --no-scripts --no-progress --prefer-dist
+
+      - name: Set up Terminus
+        run: |
+          curl -O https://raw.githubusercontent.com/pantheon-systems/terminus-installer/master/builds/installer.phar
+          php installer.phar install
+          terminus --version
+        env:
+          TERMINUS_VERSION: ${{ inputs.terminus-version }}
+
+      - name: Run ensure-multidev action
+        uses: ./.github/actions/ensure-multidev
+        with:
+            pantheon-machine-token: ${{ inputs.pantheon-machine-token }}
+            pantheon-sitename: ${{ inputs.pantheon-sitename }}

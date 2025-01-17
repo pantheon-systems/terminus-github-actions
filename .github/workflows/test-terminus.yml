@@ -6,6 +6,19 @@ on:
       - main
 
 jobs:
+  check-terminus:
+    runs-on: ubuntu-latest
+    outputs:
+      terminus_version: ${{ steps.get-version.outputs.version }}
+
+    steps:
+      - name: Get Latest Terminus Version
+        id: get-version
+        run: |
+          TERMINUS_VERSION=$(curl -s https://api.github.com/repos/pantheon-systems/terminus/releases/latest | jq -r .tag_name)
+          echo "version=${TERMINUS_VERSION}" >> $GITHUB_OUTPUT
+          echo "Latest Terminus version: ${TERMINUS_VERSION}"
+
   test_terminus:
     runs-on: ubuntu-latest
     name: Terminus Setup
@@ -32,15 +45,13 @@ jobs:
       - name: Setup Terminus
         uses: ./
 
-  test_terminus_version:
+  test_terminus_version_latest:
     name: Terminus Version
     uses: ./.github/workflows/test-terminus-version.yml
-
-  test_terminus_version_304:
-    name: Terminus Version
-    uses: ./.github/workflows/test-terminus-version.yml
+    needs:
+      check-terminus
     with:
-      terminus-version: 3.0.4
+      terminus-version: ${{ needs.check-terminus.outputs.terminus_version }}
 
   test_terminus_version_266:
     name: Terminus Version
@@ -48,3 +59,13 @@ jobs:
     with:
       php-version: 7.4
       terminus-version: 2.6.6
+
+  test_terminus_ensure_multidev:
+    name: Terminus Ensure Multidev
+    uses: ./.github/workflows/test-ensure-multidev.yml
+    needs:
+      test_terminus_version
+    with:
+      php-version: 8.2
+      terminus-version: ${{ steps.check-terminus.outputs.terminus_version }}
+      pantheon-machine-token: ${{ secrets.pantheon-machine-token }}
