@@ -10,11 +10,12 @@ inputs:
   terminus-version:
     description: |
       The full version of Terminus to install. If omitted, the latest version is used.
+      For deterministic builds, specifying a version is recommended.
     required: false
   disable-cache:
     description: Disable session cache and force a new session to be initiated.
     required: false
-    default: false
+    default: "false"
 
 runs:
   using: composite
@@ -23,12 +24,25 @@ runs:
       if: ${{ ! inputs.terminus-version }}
       shell: bash
       run: |
-        TERMINUS_RELEASE=$(
-          curl --silent \
+        echo "Attempting to find latest Terminus version..."
+        # Try to get the latest release from GitHub API with proper error handling
+        if ! TERMINUS_RELEASE=$(curl --silent --fail --max-time 10 \
             --header 'authorization: Bearer ${{ github.token }}' \
             "https://api.github.com/repos/pantheon-systems/terminus/releases/latest" \
-            | perl -nle'print $& while m#"tag_name": "\K[^"]*#g'
-        )
+            | perl -nle'print $& while m#"tag_name": "\K[^"]*#g'); then
+          echo "::error::Failed to connect to GitHub API to determine latest Terminus version."
+          echo "::error::Please specify a terminus-version input parameter for deterministic builds."
+          exit 1
+        fi
+
+        # Validate we got a proper version string (should be semver format)
+        if [[ -z "$TERMINUS_RELEASE" || ! "$TERMINUS_RELEASE" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          echo "::error::Unable to determine a valid Terminus version from GitHub API."
+          echo "::error::Please specify a terminus-version input parameter for deterministic builds."
+          exit 1
+        fi
+
+        echo "Latest Terminus version detected: $TERMINUS_RELEASE"
         echo "TERMINUS_RELEASE=$TERMINUS_RELEASE" >> $GITHUB_ENV
 
     - name: Install Terminus
