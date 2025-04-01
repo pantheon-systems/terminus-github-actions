@@ -48,12 +48,48 @@ runs:
     - name: Install Terminus
       shell: bash
       run: |
-        mkdir $HOME/terminus && cd $HOME/terminus
+        mkdir -p $HOME/terminus && cd $HOME/terminus
         echo "Installing Terminus v$TERMINUS_RELEASE"
-        curl -L https://github.com/pantheon-systems/terminus/releases/download/$TERMINUS_RELEASE/terminus.phar --output terminus
+
+        # Download Terminus with validation
+        if ! curl --fail -L https://github.com/pantheon-systems/terminus/releases/download/$TERMINUS_RELEASE/terminus.phar --output terminus; then
+          echo "::error::Failed to download Terminus v$TERMINUS_RELEASE"
+          exit 1
+        fi
+
+        # Download checksum for verification
+        if curl --fail -L https://github.com/pantheon-systems/terminus/releases/download/$TERMINUS_RELEASE/terminus.phar.sha256 --output terminus.sha256; then
+          echo "Verifying download integrity..."
+          # Fix the checksum file format if needed (ensure it only contains hash and filename)
+          sed -i.bak 's/^.*\([0-9a-f]\{64\}\).*$/\1  terminus/g' terminus.sha256
+          if ! sha256sum -c terminus.sha256; then
+            echo "::error::Checksum verification failed! The downloaded file may be corrupted."
+            exit 1
+          fi
+          echo "Integrity verification passed."
+        else
+          echo "::warning::Could not download checksum file. Skipping integrity check."
+        fi
+
+        # Basic file type verification
+        file_info=$(file terminus)
+        if ! echo "$file_info" | grep -q -E 'PHP script|executable|.+ASCII.+PHP'; then
+          echo "::error::Downloaded file is not a PHP script or executable. Got: $file_info"
+          exit 1
+        fi
+
+        # Make executable and create symlink
         chmod +x terminus
-        sudo ln -s $HOME/terminus/terminus /usr/local/bin/terminus
+        sudo ln -sf $HOME/terminus/terminus /usr/local/bin/terminus
         mkdir -p $HOME/.terminus/{cache,plugins}
+
+        # Verify installation
+        echo "Verifying Terminus installation..."
+        if ! terminus --version; then
+          echo "::error::Terminus installation verification failed."
+          exit 1
+        fi
+        echo "Terminus installation successful."
       env:
         TERMINUS_RELEASE: ${{ inputs.terminus-version || env.TERMINUS_RELEASE }}
 
