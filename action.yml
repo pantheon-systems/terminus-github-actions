@@ -75,7 +75,7 @@ runs:
         echo "session_found=false" >> $GITHUB_OUTPUT
 
         # Verify that the encrypted session file was restored from cache.
-        if [ ! -s "${{ steps.configure-cache.outputs.path }}" ]; then
+        if [[ ! -s "${{ steps.configure-cache.outputs.path }}" ]]; then
           echo "No session file found in cache."
           exit 0
         fi
@@ -85,10 +85,15 @@ runs:
         openssl enc -d -aes-256-cbc -pbkdf2 -iter 10000 -pass stdin -in ${{ steps.configure-cache.outputs.path }} -out $HOME/.terminus/cache/session
 
         # Check for restored user (string) or allow command to fail gracefully.
-        TERMINUS_USER=$(terminus auth:whoami || true)
+        TERMINUS_USER=""
+        if ! TERMINUS_USER=$(terminus auth:whoami); then
+          echo "terminus auth:whoami failed."
+          echo "No valid session found."
+          exit 0
+        fi
 
-        # Check TERMINUS_USER for string.
-        if [ -z "$TERMINUS_USER" ]; then
+        # Also assert TERMINUS_USER is a string.
+        if [[ -z "$TERMINUS_USER" ]]; then
           echo "No valid session found. "
           exit 0
         fi
