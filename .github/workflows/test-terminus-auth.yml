@@ -37,7 +37,7 @@ jobs:
           run: terminus auth:whoami
         # TODO: Assert Cache used
         - name: Fail if Cache Not Recovered
-          if: ${{ ! steps.test-with-login.outputs.session_found }}
+          if: ${{ steps.test-with-login.outputs.session_found == 'false' }}
           run:  exit 1
   test-cache-not-used-when-disabled:
     runs-on: ubuntu-latest
@@ -56,5 +56,5 @@ jobs:
         - name: Who Am I?
           run: terminus auth:whoami
         - name: Fail if Cache Recovered and Used
-          if: ${{ steps.test-with-login.outputs.session_found }}
+          if: ${{ steps.test-with-login.outputs.session_found == 'true' }}
           run:  exit 1
