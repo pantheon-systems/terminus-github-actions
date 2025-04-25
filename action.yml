@@ -16,6 +16,11 @@ inputs:
     required: false
     default: false
 
+outputs:
+  session_found:
+    description: "Whether a valid session was found from the cache and used"
+    value: ${{ steps.decrypt.outputs.session_found }}
+
 runs:
   using: composite
   steps:
