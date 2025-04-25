@@ -23,7 +23,7 @@ jobs:
   test-using-cache:
     runs-on: ubuntu-latest
     name: Test Cache is Used
-    needs: test
+    needs: test-with-login
     steps:
         - name: Checkout
           uses: actions/checkout@v4
@@ -39,7 +39,7 @@ jobs:
   test-cache-not-used-when-disabled:
     runs-on: ubuntu-latest
     name: Test Cache is ignored when disabled
-    needs: test
+    needs: test-with-login
     steps:
         - name: Checkout
           uses: actions/checkout@v4
