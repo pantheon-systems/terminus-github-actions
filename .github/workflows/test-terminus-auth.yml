@@ -1,0 +1,22 @@
+name: Terminus Github Action Tests with Auth
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: Test with Authentication
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Terminus
+        uses: ./
+        with:
+            pantheon-machine-token: ${{ secrets.PANTHEON_MACHINE_TOKEN_CI }}
+      - name: Terminus Command is available
+        run: terminus -V
+      - name: Who Am I?
+        run: terminus auth:whoami
