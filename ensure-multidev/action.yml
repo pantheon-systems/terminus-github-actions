@@ -1,0 +1,31 @@
+name: 'Terminus Ensure Multidev'
+description: 'Ensures availability of multidev environments by cleaning up old ones if necessary'
+inputs:
+  pantheon-site-name:
+    description: 'The Pantheon site name'
+    required: true
+  pantheon-machine-token:
+    description: 'Terminus machine token for authentication'
+    required: true
+  multidev-count:
+    description: 'Number of multidev environments needed'
+    required: true
+    default: '1'
+  protected-environments:
+    description: 'Comma-separated list of environments to never delete'
+    required: false
+    default: 'dev,test,live'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Terminus token
+      shell: bash
+      run: |
+         mkdir -p ~/.terminus
+         echo "machine-token: ${{ inputs.pantheon-machine-token }}" > ~/.terminus/cache/tokens.yml
+
+    - name: Run Multidev management script
+      shell: bash
+      run: ${{ github.action_path }}/ensure-multidev.sh "${{ inputs.pantheon-site-name }}" "${{ inputs.multidev-count }}" "${{ inputs.protected-environments }}"
+
