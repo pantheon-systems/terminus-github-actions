@@ -26,8 +26,10 @@ runs:
     - name: Set Terminus version
       if: ${{ ! inputs.terminus-version }}
       shell: bash
+      env:
+        DEBUG: ${{ inputs.debug }}
       run: |
-        if [[ "${{ inputs.debug }}" == "true" ]]; then
+        if [[ "$DEBUG" == "true" ]]; then
           echo "::debug::Debug mode enabled for version detection"
           echo "::debug::No terminus-version input provided, fetching latest release"
           echo "::debug::Making API call to GitHub releases endpoint"
@@ -40,7 +42,7 @@ runs:
             | perl -nle'print $& while m#"tag_name": "\K[^"]*#g'
         )
 
-        if [[ "${{ inputs.debug }}" == "true" ]]; then
+        if [[ "$DEBUG" == "true" ]]; then
           echo "::debug::API response processed, extracted version: $TERMINUS_RELEASE"
           echo "::debug::Setting TERMINUS_RELEASE environment variable to: $TERMINUS_RELEASE"
         fi
