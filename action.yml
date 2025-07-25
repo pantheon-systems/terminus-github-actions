@@ -54,7 +54,7 @@ runs:
       run: |
         FINAL_VERSION="${{ inputs.terminus-version || env.TERMINUS_RELEASE }}"
 
-        if [[ "${{ inputs.debug }}" == "true" ]]; then
+        if [[ "$DEBUG" == "true" ]]; then
           echo "::debug::Debug mode enabled for download stage"
           if [[ -n "${{ inputs.terminus-version }}" ]]; then
             echo "::debug::Using user-specified version: ${{ inputs.terminus-version }}"
@@ -68,14 +68,14 @@ runs:
         mkdir $HOME/terminus && cd $HOME/terminus
         echo "Installing Terminus v$FINAL_VERSION"
 
-        if [[ "${{ inputs.debug }}" == "true" ]]; then
+        if [[ "$DEBUG" == "true" ]]; then
           echo "::debug::Download URL: https://github.com/pantheon-systems/terminus/releases/download/$FINAL_VERSION/terminus.phar"
           echo "::debug::Starting download..."
         fi
 
         curl -L https://github.com/pantheon-systems/terminus/releases/download/$FINAL_VERSION/terminus.phar --output terminus
 
-        if [[ "${{ inputs.debug }}" == "true" ]]; then
+        if [[ "$DEBUG" == "true" ]]; then
           echo "::debug::Download completed, file size: $(ls -lh terminus | awk '{print $5}')"
           echo "::debug::Making terminus executable..."
         fi
@@ -84,13 +84,13 @@ runs:
         sudo ln -s $HOME/terminus/terminus /usr/local/bin/terminus
         mkdir -p $HOME/.terminus/{cache,plugins}
 
-        if [[ "${{ inputs.debug }}" == "true" ]]; then
+        if [[ "$DEBUG" == "true" ]]; then
           echo "::debug::Installation complete, verifying..."
           terminus --version || echo "::debug::Version check failed"
         fi
       env:
         TERMINUS_RELEASE: ${{ inputs.terminus-version || env.TERMINUS_RELEASE }}
-
+        DEBUG: ${{ inputs.debug }}
     - name: Set cache path, key, and restore-key
       id: configure-cache
       shell: bash
