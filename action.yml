@@ -15,6 +15,10 @@ inputs:
     description: Disable session cache and force a new session to be initiated.
     required: false
     default: false
+  debug:
+    description: Enable debug output for version detection and download stages.
+    required: false
+    default: false
 
 runs:
   using: composite
@@ -22,27 +26,71 @@ runs:
     - name: Set Terminus version
       if: ${{ ! inputs.terminus-version }}
       shell: bash
+      env:
+        DEBUG: ${{ inputs.debug }}
       run: |
+        if [[ "$DEBUG" == "true" ]]; then
+          echo "::debug::Debug mode enabled for version detection"
+          echo "::debug::No terminus-version input provided, fetching latest release"
+          echo "::debug::Making API call to GitHub releases endpoint"
+        fi
+
         TERMINUS_RELEASE=$(
           curl --silent \
             --header 'authorization: Bearer ${{ github.token }}' \
             "https://api.github.com/repos/pantheon-systems/terminus/releases/latest" \
             | perl -nle'print $& while m#"tag_name": "\K[^"]*#g'
         )
+
+        if [[ "$DEBUG" == "true" ]]; then
+          echo "::debug::API response processed, extracted version: $TERMINUS_RELEASE"
+          echo "::debug::Setting TERMINUS_RELEASE environment variable to: $TERMINUS_RELEASE"
+        fi
+
         echo "TERMINUS_RELEASE=$TERMINUS_RELEASE" >> $GITHUB_ENV
 
     - name: Install Terminus
       shell: bash
       run: |
+        FINAL_VERSION="${{ inputs.terminus-version || env.TERMINUS_RELEASE }}"
+
+        if [[ "$DEBUG" == "true" ]]; then
+          echo "::debug::Debug mode enabled for download stage"
+          if [[ -n "${{ inputs.terminus-version }}" ]]; then
+            echo "::debug::Using user-specified version: ${{ inputs.terminus-version }}"
+          else
+            echo "::debug::Using version from previous step: $TERMINUS_RELEASE"
+          fi
+          echo "::debug::Final version to install: $FINAL_VERSION"
+          echo "::debug::Creating installation directory: $HOME/terminus"
+        fi
+
         mkdir $HOME/terminus && cd $HOME/terminus
-        echo "Installing Terminus v$TERMINUS_RELEASE"
-        curl -L https://github.com/pantheon-systems/terminus/releases/download/$TERMINUS_RELEASE/terminus.phar --output terminus
+        echo "Installing Terminus v$FINAL_VERSION"
+
+        if [[ "$DEBUG" == "true" ]]; then
+          echo "::debug::Download URL: https://github.com/pantheon-systems/terminus/releases/download/$FINAL_VERSION/terminus.phar"
+          echo "::debug::Starting download..."
+        fi
+
+        curl -L https://github.com/pantheon-systems/terminus/releases/download/$FINAL_VERSION/terminus.phar --output terminus
+
+        if [[ "$DEBUG" == "true" ]]; then
+          echo "::debug::Download completed, file size: $(ls -lh terminus | awk '{print $5}')"
+          echo "::debug::Making terminus executable..."
+        fi
+
         chmod +x terminus
         sudo ln -s $HOME/terminus/terminus /usr/local/bin/terminus
         mkdir -p $HOME/.terminus/{cache,plugins}
+
+        if [[ "$DEBUG" == "true" ]]; then
+          echo "::debug::Installation complete, verifying..."
+          terminus --version || echo "::debug::Version check failed"
+        fi
       env:
         TERMINUS_RELEASE: ${{ inputs.terminus-version || env.TERMINUS_RELEASE }}
-
+        DEBUG: ${{ inputs.debug }}
     - name: Set cache path, key, and restore-key
       id: configure-cache
       shell: bash
