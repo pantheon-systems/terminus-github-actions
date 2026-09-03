@@ -12,6 +12,9 @@ on:
         type: string
         default: 3.0.6
 
+permissions:
+  contents: read
+
 jobs:
   test_version:
     runs-on: ubuntu-latest
