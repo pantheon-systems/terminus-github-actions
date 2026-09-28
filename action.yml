@@ -60,7 +60,7 @@ runs:
     - name: Restore cached encrypted Terminus session
       id: restore-cache
       if: ${{ inputs.disable-cache != 'true' }}
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: ${{ steps.configure-cache.outputs.path }}
         key: ${{ steps.configure-cache.outputs.key }}
@@ -120,7 +120,7 @@ runs:
     - name: Cache encrypted Terminus session
       id: save-cache
       if: ${{ steps.authenticate.outcome == 'success' && inputs.disable-cache != 'true'}}
-      uses: actions/cache/save@v4
+      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: ${{ steps.configure-cache.outputs.path }}
         key: ${{ steps.configure-cache.outputs.key }}
