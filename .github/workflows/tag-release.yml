@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: pantheon-systems/action-autotag@v0
+      - uses: pantheon-systems/action-autotag@v1
         with:
           fetch-depth: 0
       - uses: pantheon-systems/action-autotag@eed8cb09a4c1b2c2f19fea63451749aaea502bd9 # v1.3.0
