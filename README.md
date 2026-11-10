@@ -85,6 +85,15 @@ style J fill:#f9f,stroke:#333,stroke-width:2px;
 
 ```
 
+## Rollback
+
+- **When:** a release breaks consumers' workflows (a failed "Install Terminus" or "Authenticate Terminus" step) after a merge to `main`.
+- **Recover:** revert the change on `main` through a PR. The merge cuts the next patch release in seconds. Never delete or move a published tag. Consumers pinned to a bad SHA re-pin to the previous release; if the `v1` branch was advanced to a bad commit, reset it to the recorded SHA.
+- **Verify:** the latest release and `git ls-remote origin refs/heads/v1` match what you recorded before the merge, and a consumer workflow run is green.
+- **Who to page:** `#ask-hosting` (owner: developer-experience). Nobody is paged automatically.
+
+Full procedure, including what consumers pin: [DEPLOYMENT.md](DEPLOYMENT.md#rollback).
+
 ## Credits
 
 Big thanks to <a href="https://github.com/G-Rath">Gareth Jones</a> and <a href="https://www.ackama.com/">Ackama</a> for the initial development work.
